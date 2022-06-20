@@ -3,8 +3,9 @@ provider "aws" {
 }
 
 locals {
+  olexiyb_public = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEqrfgMhpeWHi9Hwr5zOq7dOJiU9+OM0IHuyHEbJYJsw olexiyb"
   cluster_name = "cloud-enabled"
-  aws_region   = "us-gov-west-1"
+  aws_region   = "us-east-1"
 
   tags = {
     "terraform" = "true",
@@ -12,28 +13,13 @@ locals {
   }
 }
 
-data "aws_ami" "rhel7" {
-  most_recent = true
-  owners      = ["219670896067"] # owner is specific to aws gov cloud
-
-  filter {
-    name   = "name"
-    values = ["RHEL-7*"]
-  }
-
-  filter {
-    name   = "architecture"
-    values = ["x86_64"]
-  }
-}
-
 data "aws_ami" "rhel8" {
   most_recent = true
-  owners      = ["219670896067"] # owner is specific to aws gov cloud
+  owners      = ["309956199498"] # owner is specific to aws gov cloud
 
   filter {
     name   = "name"
-    values = ["RHEL-8*"]
+    values = ["RHEL_HA-8*"]
   }
 
   filter {
@@ -42,13 +28,13 @@ data "aws_ami" "rhel8" {
   }
 }
 
-data "aws_ami" "centos7" {
+data "aws_ami" "ubuntu" {
   most_recent = true
-  owners      = ["345084742485"] # owner is specific to aws gov cloud
+  owners      = ["099720109477"] # owner is specific to aws gov cloud
 
   filter {
     name   = "name"
-    values = ["CentOS Linux 7 x86_64 HVM EBS*"]
+    values = ["ubuntu/images/hvm-ssd/ubuntu-focal-20.04*"]
   }
 
   filter {
@@ -56,22 +42,6 @@ data "aws_ami" "centos7" {
     values = ["x86_64"]
   }
 }
-
-data "aws_ami" "centos8" {
-  most_recent = true
-  owners      = ["345084742485"] # owner is specific to aws gov cloud
-
-  filter {
-    name   = "name"
-    values = ["CentOS Linux 8 x86_64 HVM EBS*"]
-  }
-
-  filter {
-    name   = "architecture"
-    values = ["x86_64"]
-  }
-}
-
 # Key Pair
 resource "tls_private_key" "ssh" {
   algorithm = "RSA"
@@ -129,19 +99,21 @@ module "rke2" {
   vpc_id       = module.vpc.vpc_id
   subnets      = module.vpc.public_subnets # Note: Public subnets used for demo purposes, this is not recommended in production
 
-  ami                   = data.aws_ami.rhel8.image_id # Note: Multi OS is primarily for example purposes
-  ssh_authorized_keys   = [tls_private_key.ssh.public_key_openssh]
-  instance_type         = "t3a.medium"
+  ami                   = data.aws_ami.ubuntu.image_id # Note: Multi OS is primarily for example purposes
+  ssh_authorized_keys   = [tls_private_key.ssh.public_key_openssh,local.olexiyb_public]
+  instance_type         = "t3.medium"
   controlplane_internal = false # Note this defaults to best practice of true, but is explicitly set to public for demo purposes
-  servers               = 1
+  servers               = 2
 
   # Enable AWS Cloud Controller Manager
   enable_ccm = true
 
   rke2_config = <<-EOT
+cni:
+  - cilium
 node-label:
   - "name=server"
-  - "os=rhel8"
+  - "os=ubuntu"
 EOT
 
   tags = local.tags
@@ -157,10 +129,10 @@ module "agents" {
   vpc_id  = module.vpc.vpc_id
   subnets = module.vpc.public_subnets # Note: Public subnets used for demo purposes, this is not recommended in production
 
-  ami                 = data.aws_ami.rhel8.image_id # Note: Multi OS is primarily for example purposes
-  ssh_authorized_keys = [tls_private_key.ssh.public_key_openssh]
+  ami                 = data.aws_ami.ubuntu.image_id # Note: Multi OS is primarily for example purposes
+  ssh_authorized_keys = [tls_private_key.ssh.public_key_openssh,local.olexiyb_public]
   spot                = true
-  asg                 = { min : 1, max : 10, desired : 2 }
+  asg                 = { min : 0, max : 10, desired : 0 }
   instance_type       = "t3a.large"
 
   # Enable AWS Cloud Controller Manager and Cluster Autoscaler
@@ -169,8 +141,8 @@ module "agents" {
 
   rke2_config = <<-EOT
 node-label:
-  - "name=generic"
-  - "os=rhel8"
+  - "name=agent"
+  - "os=ubuntu"
 EOT
 
   cluster_data = module.rke2.cluster_data

@@ -24,7 +24,6 @@ resource "random_string" "uid" {
   special = false
   lower   = true
   upper   = false
-  number  = true
 }
 
 #
@@ -122,6 +121,16 @@ resource "aws_security_group_rule" "server_cp_supervisor" {
   type                     = "ingress"
   source_security_group_id = module.cp_lb.security_group
 }
+
+resource "aws_security_group_rule" "rancher_https" {
+  from_port                = 443
+  to_port                  = 443
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.server.id
+  type                     = "ingress"
+  source_security_group_id = module.cp_lb.security_group
+}
+
 
 #
 # IAM Role

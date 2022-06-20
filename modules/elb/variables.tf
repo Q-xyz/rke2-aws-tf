@@ -30,6 +30,17 @@ variable "cp_ingress_cidr_blocks" {
   default = ["0.0.0.0/0"]
 }
 
+variable "https_port" {
+  type    = number
+  default = 443
+}
+
+variable "https_ingress_cidr_blocks" {
+  type    = list(string)
+  default = ["0.0.0.0/0"]
+}
+
+
 variable "cp_supervisor_port" {
   type    = number
   default = 9345
