@@ -4,7 +4,7 @@ provider "aws" {
 
 locals {
   olexiyb_public = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEqrfgMhpeWHi9Hwr5zOq7dOJiU9+OM0IHuyHEbJYJsw olexiyb"
-  cluster_name = "cloud-enabled"
+  cluster_name = "rancher"
   aws_region   = "us-east-1"
 
   tags = {
