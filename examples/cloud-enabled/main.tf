@@ -101,7 +101,7 @@ module "rke2" {
 
   ami                   = data.aws_ami.ubuntu.image_id # Note: Multi OS is primarily for example purposes
   ssh_authorized_keys   = [tls_private_key.ssh.public_key_openssh,local.olexiyb_public]
-  instance_type         = "t3.medium"
+  instance_type         = "m5.large"
   controlplane_internal = false # Note this defaults to best practice of true, but is explicitly set to public for demo purposes
   servers               = 2
 
