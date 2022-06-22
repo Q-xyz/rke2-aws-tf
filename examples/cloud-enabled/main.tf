@@ -103,7 +103,7 @@ module "rke2" {
   ssh_authorized_keys   = [tls_private_key.ssh.public_key_openssh,local.olexiyb_public]
   instance_type         = "m5.large"
   controlplane_internal = false # Note this defaults to best practice of true, but is explicitly set to public for demo purposes
-  servers               = 2
+  servers               = 3
 
   # Enable AWS Cloud Controller Manager
   enable_ccm = true
