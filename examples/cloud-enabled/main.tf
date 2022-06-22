@@ -103,7 +103,7 @@ module "rke2" {
   ssh_authorized_keys   = [tls_private_key.ssh.public_key_openssh,local.olexiyb_public]
   instance_type         = "m5.large"
   controlplane_internal = false # Note this defaults to best practice of true, but is explicitly set to public for demo purposes
-  servers               = 2
+  servers               = 3
 
   # Enable AWS Cloud Controller Manager
   enable_ccm = true
@@ -132,7 +132,7 @@ module "agents" {
   ami                 = data.aws_ami.ubuntu.image_id # Note: Multi OS is primarily for example purposes
   ssh_authorized_keys = [tls_private_key.ssh.public_key_openssh,local.olexiyb_public]
   spot                = true
-  asg                 = { min : 1, max : 3, desired : 1 }
+  asg                 = { min : 0, max : 3, desired : 0 }
   instance_type       = "m5.large"
 
   # Enable AWS Cloud Controller Manager and Cluster Autoscaler
